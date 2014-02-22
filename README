@@ -31,7 +31,7 @@ created.
 
     before(function () {
       lazy(this);
-      this.options = {enabled: false};
+      this.set('options', function () { return {enabled: false}; };
       this.set('view', function () { return new View(this.options); });
     });
 
@@ -54,12 +54,6 @@ JavaScript object but you can pass anything into it you like.
     ctx.set('myProperty', function () { return 'hello'; });
     ctx.myProperty //=> 'hello;
 
-    before(function () {
-      lazy(this); // Some test frameworks share context between tests.
-      this.set('myProperty', function () { return 'hello'; });
-      this.myProperty //=> 'hello;
-    });
-
 Use the set method to define properties on the object, or just use normal
 assignment. If set is passed a function, this will be evaluated the first
 time the property is accessed, this happens only once, after that the
@@ -77,13 +71,38 @@ access to other properties.
     ctx.set('view', function () { return new View(this.options); });
     ctx.view; // First view will be evaluated, then options, then model.
 
+A restore() function is provided to reset the properies back between each
+test run.
+
+    var ctx = lazy();
+    ctx.set('model', function () { return new Model() });
+
+    it('does something', function () {
+      ctx.model; // Function is evaluated and model is initialized.
+    });
+
+    after(function () {
+      ctx.restore(); // ctx.model is restored to a function.
+    });
+
+Some test frameworks provide a shared context between before and after blocks
+you can pass this into lazy() to use it instead.
+
+    before(function () {
+      lazy(this); // Some test frameworks share context between tests.
+      this.set('myProperty', function () { return 'hello'; });
+      this.myProperty //=> 'hello;
+    });
+
 If you use CoffeeScript or ES6 arrow functions you get a much cleaner syntax.
 
-    ctx.set -> new Model();
+    ctx.set 'model', -> new Model();
+    ctx.model
 
     before ->
       lazy(this)
-      @model -> new Model();
+      @set 'model', -> new Model();
+      @model
 
 Installation
 ------------

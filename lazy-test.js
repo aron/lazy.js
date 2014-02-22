@@ -78,11 +78,20 @@ test('the defined properties are enumerable', function () {
   assert.equal(Object.keys(context).length, 2);
 });
 
-test('the restore() method removes all keys from the context', function () {
+test('the restore() method resets all properties on the context', function () {
+  var context = lazy({});
+  context.set('foo', function () { return {bar: 'baz'}; });
+  context.foo.bar = 'qux';
+
+  context.set.restore();
+  assert.deepEqual(context.foo, {bar: 'baz'});
+});
+
+test('the clean() method removes all properties from the context', function () {
   var context = lazy({});
   context.set('foo', 'bar');
   context.set('baz', 'qux');
-  context.set.restore();
+  context.set.clean();
   assert.equal(Object.keys(context).length, 0);
 });
 
