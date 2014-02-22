@@ -1,6 +1,6 @@
 var lazy = require('./lazy');
 var assert = require('assert');
-var fmt = require('util').format;
+var format = require('util').format;
 
 test('lazy() returns an object', function () {
   var context = lazy({});
@@ -129,12 +129,17 @@ function print(fails, total) {
   if (fails.length) {
     fails.forEach(function (test) {
       var source = test.fn.toString().replace(/\n/g, '\n    ');
-      process.stdout.write(fmt('Test:\n    %s\n%s\nSource:\n    %s\n\n', test.msg, test.err.stack, source));
+      puts('Test:\n    %s\n%s\nSource:\n    %s\n', test.msg, test.err.stack, source);
     });
-    process.stdout.write(fmt('%d tests completed with %d error(s)\n', total, fails.length));
-    process.exit(0);
+    puts('%d tests completed with %d error(s)', total, fails.length);
+    process.exit(1);
   } else {
-    process.stdout.write(fmt('%d tests passing with 0 errors\n', total));
+    puts('%d tests passing with 0 errors', total);
     process.exit(0);
   }
+}
+
+function puts(msg) {
+  var args = [].slice.call(arguments, 1);
+  process.stdout.write(format.apply(null, [msg + '\n'].concat(args)));
 }

@@ -39,7 +39,7 @@
   function lazy(context, method) {
     var cache = {};
 
-    method  = method || 'set';
+    method  = method  || 'set';
     context = context || {};
 
     Object.defineProperty(context, method, {
