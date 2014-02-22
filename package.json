@@ -1,6 +1,6 @@
 {
   "name": "lazy-helper",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Lazy evaluation of properties, useful for tests",
   "main": "lazy.js",
   "scripts": {
