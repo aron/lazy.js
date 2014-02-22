@@ -78,13 +78,22 @@ test('the defined properties are enumerable', function () {
   assert.equal(Object.keys(context).length, 2);
 });
 
-test('the restore() method resets all properties on the context', function () {
-  var context = lazy({});
-  context.set('foo', function () { return {bar: 'baz'}; });
-  context.foo.bar = 'qux';
+test('the wrapper argument allows definitions to be deferred', function () {
+  function before(fn) {}
 
-  context.set.restore();
-  assert.deepEqual(context.foo, {bar: 'baz'});
+  var context = lazy({}, 'set', before);
+  context.set('foo', function () { return 'bar'; });
+
+  assert(context.hasOwnProperty('foo') === false, 'expect the context not to have the property "foo"');
+});
+
+test('the wrapper argument must call the passed function', function () {
+  function before(fn) { fn(); }
+
+  var context = lazy({}, 'set', before);
+  context.set('foo', function () { return 'bar'; });
+
+  assert.equal(context.foo, 'bar');
 });
 
 test('the clean() method removes all properties from the context', function () {

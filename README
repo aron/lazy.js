@@ -68,18 +68,23 @@ property will be set as normal.
     ctx.number //=> 0.43455677
     ctx.number //=> 0.43455677
 
-A restore() function is provided to reset the properies back between each
-test run.
+If you want to set the same properties for every test, you can pass a wrapper
+into the lazy() function, this allows you to hook into a test suites before
+calls.
 
-    var ctx = lazy();
-    ctx.set('model', function () { return new Model() });
-
-    it('does something', function () {
-      ctx.model; // Function is evaluated and model is initialized.
+    beforeEach(function () {
+      ctx.set('foo', 'bar'); // This can create messy before blocks.
     });
 
-    after(function () {
-      ctx.restore(); // ctx.model is restored to a function.
+    // Alternatively pass a wrapper as the third argument to lazy().
+    var ctx = lazy({}, 'set', beforeEach);
+
+    // This will still be called in each before block and keeps your
+    // definitions seperate from the setup.
+    ctx.set('foo', 'bar');
+
+    beforeEach(function () {
+      ctx.foo; //=> "bar"
     });
 
 Some test frameworks provide a shared context between before and after blocks
@@ -98,6 +103,15 @@ access to other properties. This is useful if you use the above style.
     this.set('model', function () { return new Model; });
     this.set('view', function () { return new View(this.options); });
     this.view; // First view will be evaluated, then options, then model.
+
+A clean() function is provided to reset the properies back between each
+test run. This is useful if you're sharing the context with the test runner,
+otherwise it's unlikely to be needed.
+
+    var ctx = lazy();
+    ctx.set('foo', 'bar');
+    ctx.set.clean();
+    ctx.hasOwnProperty('foo'); //=> false
 
 If you use CoffeeScript or ES6 arrow functions you get a much cleaner syntax.
 
