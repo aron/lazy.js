@@ -1,4 +1,4 @@
-var lazy = require('lazy');
+var lazy = require('./lazy');
 var assert = require('assert');
 var fmt = require('util').format;
 
