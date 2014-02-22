@@ -1,1 +1,114 @@
-TO BE DETERMINED. See lazy.js for examples.
+Lazy.js
+=======
+
+Lazily evaluated properties. Useful for tests.
+
+About
+-----
+
+Sometimes it is desirable to have variables that are only evaluated at the
+moment they are used. This is often the case with nested test suites, where
+later tests may need to create objects with slightly different properties.
+
+    before(function () {
+      this.options = {enabled: false};
+      this.view = new View(this.options);
+    });
+
+    it('does not render if enabled is false', function () {
+      assert(this.view.canRender() === false);
+    });
+
+    it('can render if enabled is true', function () {
+      this.options.enabled = true;
+      this.view = new View(this.options); // We have to recreate the view.
+      assert(this.view.canRender() === true);
+    });
+
+Using lazy properties we can update the options object before the view is
+created.
+
+
+    before(function () {
+      lazy(this);
+      this.options = {enabled: false};
+      this.set('view', function () { return new View(this.options); });
+    });
+
+    it('does not render if enabled is false', function () {
+      assert(this.view.canRender() === false); // View is created now.
+    });
+
+    it('can render if enabled is true', function () {
+      this.options.enabled = true; // View has not been created yet.
+      assert(this.view.canRender() === true);
+    });
+
+Usage
+-----
+
+A context is required to instantiate the object. By default this is a plain
+JavaScript object but you can pass anything into it you like.
+
+    var ctx = lazy();
+    ctx.set('myProperty', function () { return 'hello'; });
+    ctx.myProperty //=> 'hello;
+
+    before(function () {
+      lazy(this); // Some test frameworks share context between tests.
+      this.set('myProperty', function () { return 'hello'; });
+      this.myProperty //=> 'hello;
+    });
+
+Use the set method to define properties on the object, or just use normal
+assignment. If set is passed a function, this will be evaluated the first
+time the property is accessed, this happens only once, after that the
+property will be set as normal.
+
+    ctx.set('number', Math.random);
+    ctx.number //=> 0.43455677
+    ctx.number //=> 0.43455677
+
+The scope inside the lazy function will always be the context, allowing easy
+access to other properties.
+
+    ctx.set('options', function () { return {model: this.model}; });
+    ctx.set('model', function () { return new Model; });
+    ctx.set('view', function () { return new View(this.options); });
+    ctx.view; // First view will be evaluated, then options, then model.
+
+If you use CoffeeScript or ES6 arrow functions you get a much cleaner syntax.
+
+    ctx.set -> new Model();
+
+    before ->
+      lazy(this)
+      @model -> new Model();
+
+Installation
+------------
+
+The script works in both the browser and on the server although Internet
+Explorer 8 and under will not work due to lack of defineProperty support.
+
+For AMD users the script is registered under the "lazy" namespace.
+
+Testing
+-------
+
+The test suite can be run from the command line assuming you have node[1]
+installed:
+
+    $ node lazy-test.js
+
+You should see a line output saying the tests were a success, or a list of
+the currently failing tests. The suite uses the node assertion library[2]
+and a simple test runner included at the bottom of the file.
+
+[1]: http://nodejs.org
+[2]: http://nodejs.org/api/assert.html
+
+License
+-------
+
+Available under the MIT licence.
