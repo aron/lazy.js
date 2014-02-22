@@ -10,38 +10,43 @@ Sometimes it is desirable to have variables that are only evaluated at the
 moment they are used. This is often the case with nested test suites, where
 later tests may need to create objects with slightly different properties.
 
+    var options, view;
+
     before(function () {
-      this.options = {enabled: false};
-      this.view = new View(this.options);
+      options = {enabled: false};
+      view = new View(this.options);
     });
 
     it('does not render if enabled is false', function () {
-      assert(this.view.canRender() === false);
+      assert(view.canRender() === false);
     });
 
     it('can render if enabled is true', function () {
-      this.options.enabled = true;
-      this.view = new View(this.options); // We have to recreate the view.
-      assert(this.view.canRender() === true);
+      options.enabled = true;
+      view = new View(options); // We have to recreate the view.
+      assert(view.canRender() === true);
     });
 
 Using lazy properties we can update the options object before the view is
 created.
 
+    var ctx = lazy();
 
     before(function () {
-      lazy(this);
-      this.set('options', function () { return {enabled: false}; };
-      this.set('view', function () { return new View(this.options); });
+      ctx.set('options', function () { return {enabled: false}; };
+      ctx.set('view', function () { return new View(ctx.options); });
     });
 
     it('does not render if enabled is false', function () {
-      assert(this.view.canRender() === false); // View is created now.
+      // View is created now when ctx.view is accessed.
+      assert(ctx.view.canRender() === false);
     });
 
     it('can render if enabled is true', function () {
-      this.options.enabled = true; // View has not been created yet.
-      assert(this.view.canRender() === true);
+      // View has not been created yet.
+      ctx.options.enabled = true;
+      // View will be created now, with the above options.
+      assert(ctx.view.canRender() === true);
     });
 
 Usage
@@ -62,14 +67,6 @@ property will be set as normal.
     ctx.set('number', Math.random);
     ctx.number //=> 0.43455677
     ctx.number //=> 0.43455677
-
-The scope inside the lazy function will always be the context, allowing easy
-access to other properties.
-
-    ctx.set('options', function () { return {model: this.model}; });
-    ctx.set('model', function () { return new Model; });
-    ctx.set('view', function () { return new View(this.options); });
-    ctx.view; // First view will be evaluated, then options, then model.
 
 A restore() function is provided to reset the properies back between each
 test run.
@@ -93,6 +90,14 @@ you can pass this into lazy() to use it instead.
       this.set('myProperty', function () { return 'hello'; });
       this.myProperty //=> 'hello;
     });
+
+The scope inside the lazy function will always be the context, allowing easy
+access to other properties. This is useful if you use the above style.
+
+    this.set('options', function () { return {model: this.model}; });
+    this.set('model', function () { return new Model; });
+    this.set('view', function () { return new View(this.options); });
+    this.view; // First view will be evaluated, then options, then model.
 
 If you use CoffeeScript or ES6 arrow functions you get a much cleaner syntax.
 
