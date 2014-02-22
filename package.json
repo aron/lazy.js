@@ -1,0 +1,22 @@
+{
+  "name": "lazy-helper",
+  "version": "0.2.0",
+  "description": "Lazy evaluation of properties, useful for tests",
+  "main": "lazy.js",
+  "scripts": {
+    "test": "node lazy-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aron/lazy.js.git"
+  },
+  "keywords": [
+    "testing"
+  ],
+  "author": "Aron Carroll <code@aroncarroll.com> (http://aroncarroll.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aron/lazy.js/issues"
+  },
+  "homepage": "https://github.com/aron/lazy.js"
+}
