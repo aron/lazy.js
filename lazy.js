@@ -1,4 +1,9 @@
-/* Allow for creating of test variables with lazy subject evaluation in the
+/* Lazy.js - v0.3.0
+ * Copyright 2012-2014, Aron Carroll / Readmill Network Ltd
+ * Released under the MIT license
+ * More Information: http://github.com/aron/lazy.js
+ *
+ * Allow for creating of test variables with lazy subject evaluation in the
  * style of RSpec's let and subject. The named property is set to either a
  * static value, or a factory function which is lazily evaluated and memoized.
  *
