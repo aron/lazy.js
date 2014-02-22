@@ -72,18 +72,18 @@ If you want to set the same properties for every test, you can pass a wrapper
 into the lazy() function, this allows you to hook into a test suites before
 calls.
 
-    beforeEach(function () {
+    before(function () {
       ctx.set('foo', 'bar'); // This can create messy before blocks.
     });
 
     // Alternatively pass a wrapper as the third argument to lazy().
-    var ctx = lazy({}, 'set', beforeEach);
+    var ctx = lazy({}, 'set', before);
 
     // This will still be called in each before block and keeps your
     // definitions seperate from the setup.
     ctx.set('foo', 'bar');
 
-    beforeEach(function () {
+    before(function () {
       ctx.foo; //=> "bar"
     });
 
