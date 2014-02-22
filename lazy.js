@@ -9,22 +9,22 @@
  *
  *   var obj = lazy({});
  *
- *   obj.lazy('target', 'boom');
+ *   obj.set('target', 'boom');
  *   obj.target // => 'boom'
  *
- *   obj.lazy('target', 4);
+ *   obj.set('target', 4);
  *   obj.target // => 4
  *
- *   obj.lazy('target', function () { Math.random() });
+ *   obj.set('target', function () { Math.random() });
  *   obj.target # => 0.1856299617793411
  *   obj.target # => 0.1856299617793411
  *
  *   // The context of the inner function is the lazy object.
- *   obj.lazy('fixture', 'fixture');
- *   obj.lazy('target', function () { this.fixture === 'fixture' //=> true });
+ *   obj.set('fixture', 'fixture');
+ *   obj.set('target', function () { this.fixture === 'fixture' //=> true });
  *
  *   // Call .restore() to remove all added properties.
- *   obj.lazy.restore();
+ *   obj.set.restore();
  *   obj.target //=> undefined
  *
  *   // The method name can also be specifed, I prefer "let" but it is a
@@ -35,52 +35,64 @@
  *
  * Returns context.
  */
-function lazy(context, method) {
-  var cache = [];
+(function (module) {
+  function lazy(context, method) {
+    var cache = [];
 
-  method = method || 'lazy';
+    method  = method || 'set';
+    context = context || {};
 
-  context[method] = function (name, value) {
-    var subject = arguments.length === 2 ? value : null;
-    var isMemoized = false;
+    Object.defineProperty(context, method, {
+      value: function (name, value) {
+        var subject = arguments.length === 2 ? value : null;
 
-    cache.push(name);
+        cache.push(name);
 
-    Object.defineProperty(context, name, {
-      get: function () {
-        if (isMemoized) { return subject; }
-        var isFunction = typeof subject === 'function';
-        var isMocked = isFunction && typeof subject.getCall === 'function';
+        Object.defineProperty(context, name, {
+          get: function () {
+            var isFunction = typeof subject === 'function';
+            var isMocked = isFunction && typeof subject.getCall === 'function';
 
-        isMemoized = true;
-
-        // If this is a plain function then call it and return the value. This
-        // allows object initialization to be deferred. However if it's a
-        // sinon mock then just let it be.
-        return subject = isFunction && !isMocked ? subject.call(this) : subject;
-      },
-      set: function (value) {
-        subject = value;
-        isMemoized = false;
-      },
-      configurable: true
+            // If this is a plain function then call it and return the value. This
+            // allows object initialization to be deferred. However if it's a
+            // sinon mock then just let it be.
+            return context[name] = isFunction && !isMocked ? subject.call(this) : subject;
+          },
+          set: function (value) {
+            subject = value;
+          },
+          configurable: true,
+          enumerable: true
+        });
+      }
     });
-  };
 
-  // Clean up all test variables lazy evaluated with this.lazy().
-  // This can be called in afterEach() to clean up after each test,
-  // so that tests do not pollute each other.
-  //
-  // Examples
-  //
-  //   obj.lazy.restore() // Cleans up lazily-loaded variables in obj.
-  //
-  // Returns nothing.
-  context[method].restore = function () {
-    while (cache.length) {
-      delete context[cache.pop()];
-    }
-  };
+    // Clean up all test variables lazy evaluated with this.lazy().
+    // This can be called in afterEach() to clean up after each test,
+    // so that tests do not pollute each other.
+    //
+    // Examples
+    //
+    //   obj.lazy.restore() // Cleans up lazily-loaded variables in obj.
+    //
+    // Returns nothing.
+    context[method].restore = function () {
+      while (cache.length) {
+        delete context[cache.pop()];
+      }
+    };
 
-  return context;
-}
+    return context;
+  }
+
+  // Export the function for various environments.
+  if (typeof module.define === 'function' && module.define.amd) {
+    module.define('lazy', function () {
+      return lazy;
+    });
+  } else if (module.exports) {
+    module.exports = lazy;
+  } else {
+    module.lazy = lazy;
+  }
+})(typeof module === 'object' ? module : this);
